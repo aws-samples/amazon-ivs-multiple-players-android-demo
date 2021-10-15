@@ -1,0 +1,30 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Theme.MultiplePlayers" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <!-- Primary brand color. -->
+        <item name="colorPrimary">@color/primary_bg_color</item>
+        <item name="colorPrimaryVariant">@color/primary_bg_color</item>
+        <item name="colorOnPrimary">@color/primary_bg_color</item>
+        <!-- Secondary brand color. -->
+        <item name="colorSecondary">@color/primary_bg_dark_color</item>
+        <item name="colorSecondaryVariant">@color/primary_bg_dark_color</item>
+        <item name="colorOnSecondary">@color/primary_bg_dark_color</item>
+        <!-- Status bar color. -->
+        <item name="android:statusBarColor" tools:targetApi="l">@color/primary_bg_dark_color</item>
+        <!-- Customize your theme here. -->
+        <item name="android:windowBackground">@color/primary_bg_dark_color</item>
+    </style>
+
+    <style name="StreamContainer" parent="CardView">
+        <item name="cardCornerRadius">8dp</item>
+        <item name="cardBackgroundColor">@color/primary_bg_color</item>
+    </style>
+
+    <style name="ProgressBar" parent="Theme.MultiplePlayers">
+        <item name="android:layout_gravity">center</item>
+        <item name="android:indeterminate">true</item>
+        <item name="android:scaleType">center</item>
+        <item name="android:indeterminateTint">@color/progressbar_color</item>
+    </style>
+
+</resources>

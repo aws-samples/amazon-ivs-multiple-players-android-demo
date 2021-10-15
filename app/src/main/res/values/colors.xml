@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="primary_bg_color">#151515</color>
+    <color name="primary_bg_dark_color">#080404</color>
+    <color name="primary_button_color_light">#FFF</color>
+    <color name="button_accent_color">#e1e1e1</color>
+    <color name="utility_icons_dark">#101010</color>
+    <color name="progressbar_color">#FFF</color>
+    <color name="snackbar_action_color">#FFF</color>
+</resources>

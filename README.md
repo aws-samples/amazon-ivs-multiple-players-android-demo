@@ -1,17 +1,14 @@
-## My Project
+# Amazon IVS Multiple Players Android Demo
 
-TODO: Fill this README out!
+This repository contains demo app which shows how to instantiate multiple players simultaneously, and switch between 3 predefined layouts/sets of demo streams.
 
-Be sure to:
+<img src="app-screenshot.png" alt="An Android phone with a the demo application running on the screen." />
 
-* Change the title in this README
-* Edit your repository description on GitHub
+## Setup
 
-## Security
-
-See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more information.
+1. Clone the repository to your local machine.
+2. Open the cloned repository in [Android Studio](https://developer.android.com/studio), or an IDE of your choice.
+3. Run the application on an emulated device or a physical device running API level 29 or later.
 
 ## License
-
-This library is licensed under the MIT-0 License. See the LICENSE file.
-
+This project is licensed under the MIT-0 License. See the LICENSE file.

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mobile_navigation"
+    app:startDestination="@+id/navigation_fragment_first">
+
+    <fragment
+        android:id="@+id/navigation_fragment_first"
+        android:name="com.amazon.ivs.multiple.players.ui.firstlayout.FirstLayoutFragment"
+        tools:layout="@layout/fragment_first" />
+
+    <fragment
+        android:id="@+id/navigation_fragment_second"
+        android:name="com.amazon.ivs.multiple.players.ui.secondlayout.SecondLayoutFragment"
+        tools:layout="@layout/fragment_second" />
+
+    <fragment
+        android:id="@+id/navigation_fragment_third"
+        android:name="com.amazon.ivs.multiple.players.ui.thirdlayout.ThirdLayoutFragment"
+        tools:layout="@layout/fragment_third" />
+
+</navigation>

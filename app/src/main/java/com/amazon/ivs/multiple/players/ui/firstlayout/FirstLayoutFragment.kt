@@ -13,6 +13,7 @@ import com.amazon.ivs.multiple.players.common.*
 import com.amazon.ivs.multiple.players.databinding.FragmentFirstBinding
 import com.amazon.ivs.multiple.players.ui.models.FirstLayoutStream
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.collect
 import timber.log.Timber
 import kotlin.math.roundToInt
 
@@ -38,39 +39,47 @@ class FirstLayoutFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        viewModel.onBuffering.observeConsumable(viewLifecycleOwner) { bufferingStates ->
-            bufferingStates.forEach { state ->
-                when (state.playerId) {
-                    FirstLayoutStream.STREAM_A.index -> {
-                        binding.surfaceBufferingA = state.buffering
-                    }
-                    FirstLayoutStream.STREAM_B.index -> {
-                        binding.surfaceBufferingB = state.buffering
-                    }
-                    FirstLayoutStream.STREAM_C.index -> {
-                        binding.surfaceBufferingC = state.buffering
+        launchUI {
+            viewModel.onBuffering.collect { bufferingStates ->
+                bufferingStates.forEach { state ->
+                    when (state.playerId) {
+                        FirstLayoutStream.STREAM_A.index -> {
+                            binding.surfaceBufferingA = state.buffering
+                        }
+                        FirstLayoutStream.STREAM_B.index -> {
+                            binding.surfaceBufferingB = state.buffering
+                        }
+                        FirstLayoutStream.STREAM_C.index -> {
+                            binding.surfaceBufferingC = state.buffering
+                        }
                     }
                 }
             }
         }
 
-        viewModel.onError.observeConsumable(viewLifecycleOwner) { error ->
-            binding.root.showSnackBar(error.errorMessage)
-        }
-
-        viewModel.onSizeChanged.observeConsumable(viewLifecycleOwner) { playerIndex ->
-            videoSurfaces[playerIndex].onReady(playerIndex) { playerView ->
-                Timber.d("Player size changed: $playerView")
-                viewModel.updatePlayerView(playerView)
+        launchUI {
+            viewModel.onError.collect { error ->
+                binding.root.showSnackBar(error.errorMessage)
             }
         }
 
-        viewModel.isPlaying.observeConsumable(viewLifecycleOwner) { playing ->
-            binding.controls.isPLaying = playing
+        launchUI {
+            viewModel.onSizeChanged.collect { playerIndex ->
+                videoSurfaces[playerIndex].onReady(playerIndex) { playerView ->
+                    Timber.d("Player size changed: $playerView")
+                    viewModel.updatePlayerView(playerView)
+                }
+            }
+        }
+
+        launchUI {
+            viewModel.onPlaying.collect { playing ->
+                binding.controls.isPLaying = playing
+            }
         }
 
         binding.controls.play.setOnClickListener {
-            if (viewModel.isPlaying.consumedValue == true) {
+            if (viewModel.isPlaying) {
                 viewModel.pause()
             } else {
                 viewModel.play()
@@ -107,11 +116,6 @@ class FirstLayoutFragment : Fragment() {
     override fun onDestroy() {
         super.onDestroy()
         viewModel.release()
-    }
-
-    override fun onStart() {
-        super.onStart()
-        viewModel.onError.consume()
     }
 
     private fun updateOnRotation() = launchMain {

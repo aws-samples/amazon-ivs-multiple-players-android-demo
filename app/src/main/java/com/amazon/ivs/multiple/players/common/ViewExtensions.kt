@@ -11,7 +11,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.doOnLayout
 import androidx.navigation.findNavController
 import com.amazon.ivs.multiple.players.R
-import com.amazon.ivs.multiple.players.ui.models.PlayerViewModel
+import com.amazon.ivs.multiple.players.ui.models.PlayerUIModel
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.*
@@ -46,7 +46,7 @@ fun View.zoomToFit(videoWidth: Int, videoHeight: Int) {
     }
 }
 
-fun List<TextureView>.onReady(onReady: (playerViews: List<PlayerViewModel>) -> Unit) = launchMain {
+fun List<TextureView>.onReady(onReady: (playerViews: List<PlayerUIModel>) -> Unit) = launchMain {
     val surfaceReadyFlows = mapIndexed { index, textureView ->
         textureView.waitForSurface(index)
     }
@@ -57,7 +57,7 @@ fun List<TextureView>.onReady(onReady: (playerViews: List<PlayerViewModel>) -> U
     }
 }
 
-fun TextureView.onReady(index: Int, onReady: (playerView: PlayerViewModel) -> Unit) = launchMain {
+fun TextureView.onReady(index: Int, onReady: (playerView: PlayerUIModel) -> Unit) = launchMain {
     waitForSurface(index).collectLatest { playerView ->
         onReady(playerView)
     }
@@ -87,14 +87,14 @@ fun View.onDrawn(onDrawn: () -> Unit) {
 private fun TextureView.waitForSurface(index: Int) = channelFlow {
     if (surfaceTexture != null) {
         Timber.d("Player view already ready: $index")
-        offer(PlayerViewModel(index, this@waitForSurface, Surface(surfaceTexture)))
+        trySend(PlayerUIModel(index, this@waitForSurface, Surface(surfaceTexture)))
         return@channelFlow
     }
     surfaceTextureListener = object : TextureView.SurfaceTextureListener {
         override fun onSurfaceTextureAvailable(surface: SurfaceTexture, width: Int, height: Int) {
             Timber.d("Player view just became ready: $index")
             surfaceTextureListener = null
-            offer(PlayerViewModel(index, this@waitForSurface, Surface(surfaceTexture)))
+            trySend(PlayerUIModel(index, this@waitForSurface, Surface(surfaceTexture)))
         }
 
         override fun onSurfaceTextureSizeChanged(surface: SurfaceTexture, width: Int, height: Int) {

@@ -3,24 +3,31 @@ package com.amazon.ivs.multiple.players.ui.thirdlayout
 import android.content.Context
 import android.net.Uri
 import androidx.lifecycle.ViewModel
-import com.amazon.ivs.multiple.players.common.ConsumableLiveData
+import com.amazon.ivs.multiple.players.common.ConsumableSharedFlow
 import com.amazon.ivs.multiple.players.common.init
 import com.amazon.ivs.multiple.players.common.zoomToFit
 import com.amazon.ivs.multiple.players.ui.models.*
 import com.amazonaws.ivs.player.MediaPlayer
 import com.amazonaws.ivs.player.Player
+import kotlinx.coroutines.flow.asSharedFlow
 import timber.log.Timber
 
 class ThirdLayoutViewModel : ViewModel() {
 
     private var playerSet = mutableListOf<PlayerModel>()
     private var bufferingStates = mutableListOf<VideoBufferingState>()
-    val onSizeChanged = ConsumableLiveData<Int>()
-    val onBuffering = ConsumableLiveData<List<VideoBufferingState>>()
-    val onError = ConsumableLiveData<Error>()
-    val isPlaying = ConsumableLiveData<Boolean>()
+    private val _onSizeChanged = ConsumableSharedFlow<Int>(canReplay = true)
+    private val _onBuffering = ConsumableSharedFlow<List<VideoBufferingState>>()
+    private val _onError = ConsumableSharedFlow<Error>()
+    private val _onPlaying = ConsumableSharedFlow<Boolean>()
 
-    fun initPlayers(context: Context, playerViews: List<PlayerViewModel>) {
+    val onSizeChanged = _onSizeChanged.asSharedFlow()
+    val onBuffering = _onBuffering.asSharedFlow()
+    val onError = _onError.asSharedFlow()
+    val onPlaying = _onPlaying.asSharedFlow()
+    val isPlaying get() = _onPlaying.replayCache.lastOrNull() ?: false
+
+    fun initPlayers(context: Context, playerViews: List<PlayerUIModel>) {
         if (playerSet.isNotEmpty()) return
         ThirdLayoutStream.values().forEachIndexed { index, streamModel ->
             updateBufferingState(index, true)
@@ -32,7 +39,7 @@ class ThirdLayoutViewModel : ViewModel() {
                         if (player.width != videoSizeState.width || player.height != videoSizeState.height) {
                             player.width = videoSizeState.width
                             player.height = videoSizeState.height
-                            onSizeChanged.postConsumable(player.index)
+                            _onSizeChanged.tryEmit(player.index)
                         }
                     }
                 },
@@ -48,17 +55,17 @@ class ThirdLayoutViewModel : ViewModel() {
                         }
                         Player.State.PLAYING -> {
                             updateBufferingState(playerIndex, false)
-                            isPlaying.postConsumable(true)
+                            _onPlaying.tryEmit(true)
                         }
                         else -> { /* Ignored */ }
                     }
 
                     if (playerSet.all { playerModel -> playerModel.player.state != Player.State.PLAYING }) {
-                        isPlaying.postConsumable(false)
+                        _onPlaying.tryEmit(false)
                     }
                 },
                 { exception ->
-                    onError.postConsumable(exception)
+                    _onError.tryEmit(exception)
                 }
             )
 
@@ -90,13 +97,13 @@ class ThirdLayoutViewModel : ViewModel() {
         }
     }
 
-    fun updatePlayerViews(playerViews: List<PlayerViewModel>) {
+    fun updatePlayerViews(playerViews: List<PlayerUIModel>) {
         playerViews.forEach { playerView ->
             updatePlayerView(playerView)
         }
     }
 
-    fun updatePlayerView(playerView: PlayerViewModel) {
+    fun updatePlayerView(playerView: PlayerUIModel) {
         playerSet.getOrNull(playerView.index)?.let { playerModel ->
             Timber.d("Updating player view: $playerModel")
             playerView.container.zoomToFit(playerModel.width, playerModel.height)
@@ -110,6 +117,6 @@ class ThirdLayoutViewModel : ViewModel() {
         } ?: run {
             bufferingStates.add(VideoBufferingState(playerIndex, isBuffering))
         }
-        onBuffering.postConsumable(bufferingStates.map { it.copy() })
+        _onBuffering.tryEmit(bufferingStates.map { it.copy() })
     }
 }

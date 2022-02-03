@@ -13,7 +13,6 @@ import com.amazon.ivs.multiple.players.common.*
 import com.amazon.ivs.multiple.players.databinding.FragmentSecondBinding
 import com.amazon.ivs.multiple.players.ui.models.SecondLayoutStream
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.collect
 import timber.log.Timber
 import kotlin.math.roundToInt
 

@@ -17,9 +17,9 @@ class SecondLayoutViewModel : ViewModel() {
     private var playerSet = mutableListOf<PlayerModel>()
     private var bufferingStates = mutableListOf<VideoBufferingState>()
     private val _onSizeChanged = ConsumableSharedFlow<Int>(canReplay = true)
-    private val _onBuffering = ConsumableSharedFlow<List<VideoBufferingState>>()
+    private val _onBuffering = ConsumableSharedFlow<List<VideoBufferingState>>(canReplay = true)
+    private val _onPlaying = ConsumableSharedFlow<Boolean>(canReplay = true)
     private val _onError = ConsumableSharedFlow<Error>()
-    private val _onPlaying = ConsumableSharedFlow<Boolean>()
 
     val onSizeChanged = _onSizeChanged.asSharedFlow()
     val onBuffering = _onBuffering.asSharedFlow()

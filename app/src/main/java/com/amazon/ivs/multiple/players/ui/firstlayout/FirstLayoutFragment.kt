@@ -13,7 +13,6 @@ import com.amazon.ivs.multiple.players.common.*
 import com.amazon.ivs.multiple.players.databinding.FragmentFirstBinding
 import com.amazon.ivs.multiple.players.ui.models.FirstLayoutStream
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.collect
 import timber.log.Timber
 import kotlin.math.roundToInt
 

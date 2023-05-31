@@ -3,28 +3,33 @@ package com.amazon.ivs.multiple.players.ui.thirdlayout
 import android.content.Context
 import android.net.Uri
 import androidx.lifecycle.ViewModel
-import com.amazon.ivs.multiple.players.common.ConsumableSharedFlow
 import com.amazon.ivs.multiple.players.common.init
 import com.amazon.ivs.multiple.players.common.zoomToFit
 import com.amazon.ivs.multiple.players.ui.models.*
 import com.amazonaws.ivs.player.MediaPlayer
 import com.amazonaws.ivs.player.Player
-import kotlinx.coroutines.flow.asSharedFlow
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.update
 import timber.log.Timber
+import javax.inject.Inject
 
-class ThirdLayoutViewModel : ViewModel() {
-
+@HiltViewModel
+class ThirdLayoutViewModel @Inject constructor() : ViewModel() {
     private var playerSet = mutableListOf<PlayerModel>()
     private var bufferingStates = mutableListOf<VideoBufferingState>()
-    private val _onSizeChanged = ConsumableSharedFlow<Int>(canReplay = true)
-    private val _onBuffering = ConsumableSharedFlow<List<VideoBufferingState>>(canReplay = true)
-    private val _onPlaying = ConsumableSharedFlow<Boolean>(canReplay = true)
-    private val _onError = ConsumableSharedFlow<Error>()
+    private val _onSizeChanged = Channel<Int>()
+    private val _onBuffering = Channel<List<VideoBufferingState>>()
+    private val _onPlaying = MutableStateFlow(false)
+    private val _onError = Channel<Error>()
 
-    val onSizeChanged = _onSizeChanged.asSharedFlow()
-    val onBuffering = _onBuffering.asSharedFlow()
-    val onError = _onError.asSharedFlow()
-    val onPlaying = _onPlaying.asSharedFlow()
+    val onSizeChanged = _onSizeChanged.receiveAsFlow()
+    val onBuffering = _onBuffering.receiveAsFlow()
+    val onError = _onError.receiveAsFlow()
+    val onPlaying = _onPlaying.asStateFlow()
     val isPlaying get() = _onPlaying.replayCache.lastOrNull() ?: false
 
     fun initPlayers(context: Context, playerViews: List<PlayerUIModel>) {
@@ -39,7 +44,7 @@ class ThirdLayoutViewModel : ViewModel() {
                         if (player.width != videoSizeState.width || player.height != videoSizeState.height) {
                             player.width = videoSizeState.width
                             player.height = videoSizeState.height
-                            _onSizeChanged.tryEmit(player.index)
+                            _onSizeChanged.trySend(player.index)
                         }
                     }
                 },
@@ -55,17 +60,17 @@ class ThirdLayoutViewModel : ViewModel() {
                         }
                         Player.State.PLAYING -> {
                             updateBufferingState(playerIndex, false)
-                            _onPlaying.tryEmit(true)
+                            _onPlaying.update { true }
                         }
                         else -> { /* Ignored */ }
                     }
 
                     if (playerSet.all { playerModel -> playerModel.player.state != Player.State.PLAYING }) {
-                        _onPlaying.tryEmit(false)
+                        _onPlaying.update { false }
                     }
                 },
                 { exception ->
-                    _onError.tryEmit(exception)
+                    _onError.trySend(exception)
                 }
             )
 
@@ -117,6 +122,6 @@ class ThirdLayoutViewModel : ViewModel() {
         } ?: run {
             bufferingStates.add(VideoBufferingState(playerIndex, isBuffering))
         }
-        _onBuffering.tryEmit(bufferingStates.map { it.copy() })
+        _onBuffering.trySend(bufferingStates.map { it.copy() })
     }
 }

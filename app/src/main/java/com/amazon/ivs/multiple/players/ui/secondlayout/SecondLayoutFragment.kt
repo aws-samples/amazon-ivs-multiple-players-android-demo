@@ -7,22 +7,20 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.fragment.app.Fragment
-import com.amazon.ivs.multiple.players.App
+import androidx.fragment.app.activityViewModels
 import com.amazon.ivs.multiple.players.R
 import com.amazon.ivs.multiple.players.common.*
 import com.amazon.ivs.multiple.players.databinding.FragmentSecondBinding
 import com.amazon.ivs.multiple.players.ui.models.SecondLayoutStream
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import timber.log.Timber
 import kotlin.math.roundToInt
 
+@AndroidEntryPoint
 class SecondLayoutFragment : Fragment() {
-
     private lateinit var binding: FragmentSecondBinding
-    private val viewModel: SecondLayoutViewModel by lazyViewModel(
-        { requireActivity().application as App },
-        { SecondLayoutViewModel() }
-    )
+    private val viewModel by activityViewModels<SecondLayoutViewModel>()
 
     private val videoSurfaces get() = listOf(
         binding.surfaceViewA,
@@ -37,40 +35,32 @@ class SecondLayoutFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        launchUI {
-            viewModel.onBuffering.collect { bufferingStates ->
-                bufferingStates.forEach { state ->
-                    when (state.playerId) {
-                        SecondLayoutStream.STREAM_A.index -> {
-                            binding.surfaceBufferingA = state.buffering
-                        }
-                        SecondLayoutStream.STREAM_B.index -> {
-                            binding.surfaceBufferingB = state.buffering
-                        }
+        collect(viewModel.onBuffering) { bufferingStates ->
+            bufferingStates.forEach { state ->
+                when (state.playerId) {
+                    SecondLayoutStream.STREAM_A.index -> {
+                        binding.surfaceBufferingA = state.buffering
+                    }
+                    SecondLayoutStream.STREAM_B.index -> {
+                        binding.surfaceBufferingB = state.buffering
                     }
                 }
             }
         }
 
-        launchUI {
-            viewModel.onError.collect { error ->
-                binding.root.showSnackBar(error.errorMessage)
+        collect(viewModel.onError) { error ->
+            binding.root.showSnackBar(error.errorMessage)
+        }
+
+        collect(viewModel.onSizeChanged) { playerIndex ->
+            videoSurfaces[playerIndex].onReady(playerIndex) { playerView ->
+                Timber.d("Player size changed: $playerView")
+                viewModel.updatePlayerView(playerView)
             }
         }
 
-        launchUI {
-            viewModel.onSizeChanged.collect { playerIndex ->
-                videoSurfaces[playerIndex].onReady(playerIndex) { playerView ->
-                    Timber.d("Player size changed: $playerView")
-                    viewModel.updatePlayerView(playerView)
-                }
-            }
-        }
-
-        launchUI {
-            viewModel.onPlaying.collect { playing ->
-                binding.controls.isPLaying = playing
-            }
+        collect(viewModel.onPlaying) { playing ->
+            binding.controls.isPLaying = playing
         }
 
         binding.controls.play.setOnClickListener {
@@ -85,7 +75,7 @@ class SecondLayoutFragment : Fragment() {
             videoSurfaces.forEach { playerView ->
                 playerView.animate().alpha(0f).setDuration(SURFACE_FADE_OUT_DELAY).start()
             }
-            launchMain {
+            launchUI {
                 delay(SURFACE_FADE_OUT_DELAY)
                 activity?.openFragment(R.id.navigation_fragment_third)
             }
@@ -113,7 +103,7 @@ class SecondLayoutFragment : Fragment() {
         viewModel.release()
     }
 
-    private fun updateOnRotation() = launchMain {
+    private fun updateOnRotation() = launchUI {
         repeat(MEASURE_REPEAT_COUNT) {
             binding.root.onDrawn {
                 videoSurfaces.onReady { playerViews ->

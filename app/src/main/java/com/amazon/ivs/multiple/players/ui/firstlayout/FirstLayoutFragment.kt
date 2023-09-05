@@ -107,7 +107,7 @@ class FirstLayoutFragment : Fragment() {
         viewModel.release()
     }
 
-    private fun updateOnRotation() = launchUI {
+    private fun updateOnRotation() = launchMain {
         repeat(MEASURE_REPEAT_COUNT) {
             binding.root.onDrawn {
                 videoSurfaces.onReady { playerViews ->

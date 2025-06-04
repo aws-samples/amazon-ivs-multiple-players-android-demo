@@ -1,11 +1,15 @@
 package com.amazon.ivs.multiple.players.ui.thirdlayout
 
 import android.content.Context
-import android.net.Uri
+import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import com.amazon.ivs.multiple.players.common.init
 import com.amazon.ivs.multiple.players.common.zoomToFit
-import com.amazon.ivs.multiple.players.ui.models.*
+import com.amazon.ivs.multiple.players.ui.models.Error
+import com.amazon.ivs.multiple.players.ui.models.PlayerModel
+import com.amazon.ivs.multiple.players.ui.models.PlayerUIModel
+import com.amazon.ivs.multiple.players.ui.models.ThirdLayoutStream
+import com.amazon.ivs.multiple.players.ui.models.VideoBufferingState
 import com.amazonaws.ivs.player.MediaPlayer
 import com.amazonaws.ivs.player.Player
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -34,9 +38,9 @@ class ThirdLayoutViewModel @Inject constructor() : ViewModel() {
 
     fun initPlayers(context: Context, playerViews: List<PlayerUIModel>) {
         if (playerSet.isNotEmpty()) return
-        ThirdLayoutStream.values().forEachIndexed { index, streamModel ->
+        ThirdLayoutStream.entries.forEachIndexed { index, streamModel ->
             updateBufferingState(index, true)
-            val player = MediaPlayer(context)
+            val player = MediaPlayer.Builder(context).build()
             val listener = player.init(
                 index,
                 { videoSizeState ->
@@ -75,7 +79,7 @@ class ThirdLayoutViewModel @Inject constructor() : ViewModel() {
             )
 
             player.setSurface(playerViews.getOrNull(index)?.surface)
-            player.load(Uri.parse(streamModel.uri))
+            player.load(streamModel.uri.toUri())
             player.play()
             playerSet.add(PlayerModel(index, player, listener))
         }
